@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PlateSpeed – Test in Progress</title>
+  <meta name="description" content="License plate typing test in progress." />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* Prevent any text selection across the entire test page */
+    .plate-panel * {
+      user-select: none !important;
+      -webkit-user-select: none !important;
+    }
+  </style>
+</head>
+<body class="test-page">
+
+  <!-- Subtle background -->
+  <div class="bg-orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+  </div>
+
+  <!-- ── Fixed Header ──────────────────────────────────────── -->
+  <header class="test-header">
+    <div class="test-header-inner">
+      <div class="header-brand">🚘 PlateSpeed</div>
+
+      <div class="header-progress-wrap">
+        <span class="header-progress-label" id="progressLabel">Plate 0 / 1000</span>
+        <div class="progress-track">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+      </div>
+
+      <div class="header-timer" id="timerDisplay">00:00</div>
+    </div>
+  </header>
+
+  <!-- ── Main Content ──────────────────────────────────────── -->
+  <main class="test-main">
+    <div class="test-grid">
+
+      <!-- Left: Input panel -->
+      <div class="input-panel">
+        <span class="panel-label">Type the plate exactly</span>
+
+        <div class="type-input-wrap">
+          <input
+            type="text"
+            id="typeInput"
+            maxlength="7"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="characters"
+            spellcheck="false"
+            placeholder="_ _ _ _ _ _ _"
+            aria-label="Type the license plate shown on the right"
+          />
+        </div>
+
+        <div class="enter-hint">
+          Press <kbd>Enter ↵</kbd> to submit &amp; advance
+        </div>
+      </div>
+
+      <!-- Right: Plate display -->
+      <div class="plate-panel">
+        <span class="panel-label">Current Plate</span>
+
+        <div class="plate-frame" aria-hidden="true">
+          <div class="plate-display-inner">
+            <!-- Bolt decorations -->
+            <div class="plate-bolts">
+              <div class="bolt"></div>
+              <div class="bolt"></div>
+            </div>
+            <!-- The plate text — non-selectable -->
+            <span id="plateText">Loading…</span>
+            <div class="plate-state-bar">United States</div>
+          </div>
+        </div>
+
+        <div class="plate-count-badge" id="plateBadge">1 / 1000</div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ── Results Overlay ───────────────────────────────────── -->
+  <div class="results-overlay" id="resultsOverlay" role="dialog" aria-modal="true" aria-label="Test Results">
+    <div class="results-card">
+      <span class="results-icon">🏁</span>
+      <h2 class="results-title">Assessment Complete</h2>
+      <p class="results-subtitle" id="resName">Well done!</p>
+
+      <div class="results-stats">
+        <div class="stat-block">
+          <span class="stat-value" id="resCorrect">—</span>
+          <span class="stat-label">Correct</span>
+        </div>
+        <div class="stat-block">
+          <span class="stat-value" id="resAccuracy">—</span>
+          <span class="stat-label">Accuracy</span>
+        </div>
+        <div class="stat-block">
+          <span class="stat-value" id="resTime">—</span>
+          <span class="stat-label">Time Taken</span>
+        </div>
+      </div>
+
+      <p class="results-note" id="submitStatus">Submitting results…</p>
+
+      <button class="btn-primary" onclick="window.location.href='index.html'" style="max-width:260px;margin:0 auto;">
+        Take Another Test
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Scripts ───────────────────────────────────────────── -->
+  <script src="config.js"></script>
+  <script src="plates.js"></script>
+  <script src="test.js"></script>
+</body>
+</html>
