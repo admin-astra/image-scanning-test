@@ -44,7 +44,7 @@ Open `config.js` in the project folder and replace the placeholder:
 const CONFIG = {
   APPS_SCRIPT_URL: 'PASTE_YOUR_WEB_APP_URL_HERE',   // ← paste here
   TOTAL_PLATES: 1000,            // plates in the Custom Field Test
-  AMBIGUOUS_TOTAL_PLATES: 100,   // plates in the Ambiguous Letters drill
+  AMBIGUOUS_TOTAL_PLATES: 300,   // plates in the Ambiguous Letters drill
 };
 ```
 

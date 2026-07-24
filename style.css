@@ -58,7 +58,13 @@ body {
 /* ═══════════════════════════════════════════════════════════ */
 /*  REGISTRATION PAGE                                          */
 /* ═══════════════════════════════════════════════════════════ */
-.register-page { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; }
+.register-page {
+  display: flex; justify-content: center;
+  align-items: center;       /* fallback for browsers without the `safe` keyword */
+  align-items: safe center;  /* prevents the top of a tall card from being centered off-screen */
+  min-height: 100vh; padding: 40px 24px;
+  overflow-y: auto;
+}
 .register-container { position: relative; z-index: 1; width: 100%; max-width: 500px; }
 .register-card { padding: 48px 44px; }
 
