@@ -25,7 +25,7 @@
   <!-- ── Fixed Header ──────────────────────────────────────── -->
   <header class="test-header">
     <div class="test-header-inner">
-      <div class="header-brand">🚘 PlateSpeed</div>
+      <div class="header-brand">🚘 PlateSpeed <span class="header-mode" id="headerMode"></span></div>
 
       <div class="header-progress-wrap">
         <span class="header-progress-label" id="progressLabel">Plate 0 / 1000</span>
@@ -44,12 +44,44 @@
 
       <!-- Left: Input panel -->
       <div class="input-panel">
-        <span class="panel-label">Type the plate exactly</span>
+        <span class="panel-label" id="inputPanelLabel">Type the plate exactly</span>
 
-        <div class="type-input-wrap">
+        <!-- Custom Field Test — only enabled fields are shown -->
+        <div class="custom-input-wrap" id="customInputWrap" style="display:none;">
+          <div class="custom-field" id="fieldWrapState">
+            <label for="fieldState">Jurisdiction</label>
+            <select id="fieldState" autocomplete="off"></select>
+          </div>
+          <div class="custom-field-row">
+            <div class="custom-field custom-field-small" id="fieldWrapPrefix">
+              <label for="fieldPrefix">Prefix</label>
+              <input
+                type="text" id="fieldPrefix" maxlength="4"
+                autocomplete="off" autocorrect="off" autocapitalize="characters"
+                spellcheck="false" placeholder="None" />
+            </div>
+            <div class="custom-field custom-field-large" id="fieldWrapNumber">
+              <label for="fieldNumber">Registration</label>
+              <input
+                type="text" id="fieldNumber" maxlength="8"
+                autocomplete="off" autocorrect="off" autocapitalize="characters"
+                spellcheck="false" placeholder="00000" />
+            </div>
+            <div class="custom-field custom-field-small" id="fieldWrapSuffix">
+              <label for="fieldSuffix">Suffix</label>
+              <input
+                type="text" id="fieldSuffix" maxlength="4"
+                autocomplete="off" autocorrect="off" autocapitalize="characters"
+                spellcheck="false" placeholder="None" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Ambiguous Letters Practice — single plate-number input -->
+        <div class="type-input-wrap" id="ambiguousInputWrap" style="display:none;">
           <input
             type="text"
-            id="typeInput"
+            id="ambiguousInput"
             maxlength="7"
             autocomplete="off"
             autocorrect="off"
@@ -60,7 +92,7 @@
           />
         </div>
 
-        <div class="enter-hint">
+        <div class="enter-hint" id="enterHint">
           Press <kbd>Enter ↵</kbd> to submit &amp; advance
         </div>
       </div>
@@ -69,16 +101,32 @@
       <div class="plate-panel">
         <span class="panel-label">Current Plate</span>
 
-        <div class="plate-frame" aria-hidden="true">
-          <div class="plate-display-inner">
-            <!-- Bolt decorations -->
+        <!-- Custom Field Test plate (state on top, stacked prefix/suffix, registration) -->
+        <div class="plate-frame custom-plate-frame" id="customPlateFrame" style="display:none;" aria-hidden="true">
+          <div class="plate-display-inner custom-plate-inner">
             <div class="plate-bolts">
               <div class="bolt"></div>
               <div class="bolt"></div>
             </div>
-            <!-- The plate text — non-selectable -->
-            <span id="plateText">Loading…</span>
-            <div class="plate-state-bar">United States</div>
+            <div class="custom-plate-state" id="customPlateState" style="display:none;">Illinois</div>
+            <div class="custom-plate-row">
+              <div class="custom-plate-stack" id="customPlatePrefix" style="display:none;"></div>
+              <div class="custom-plate-number" id="customPlateNumber">Loading…</div>
+              <div class="custom-plate-stack" id="customPlateSuffix" style="display:none;"></div>
+            </div>
+            <div class="custom-plate-tagline" id="customPlateTagline">United States</div>
+          </div>
+        </div>
+
+        <!-- Ambiguous Letters plate — heavily squished, blurred & glared on purpose -->
+        <div class="plate-frame ambiguous-plate-frame" id="ambiguousPlateFrame" style="display:none;" aria-hidden="true">
+          <div class="plate-display-inner ambiguous-plate-inner">
+            <div class="plate-bolts">
+              <div class="bolt"></div>
+              <div class="bolt"></div>
+            </div>
+            <span id="ambiguousPlateText" class="ambiguous-plate-text">Loading…</span>
+            <div class="ambiguous-glare" id="ambiguousGlare"></div>
           </div>
         </div>
 

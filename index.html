@@ -28,6 +28,50 @@
       <form id="registerForm" autocomplete="off" novalidate>
 
         <div class="form-group">
+          <label>Test Type</label>
+          <div class="test-type-toggle">
+            <label class="test-type-option">
+              <input type="radio" name="testType" value="custom" checked />
+              <span>
+                <strong>Custom Plate Test</strong>
+                <small>Pick exactly which fields to test</small>
+              </span>
+            </label>
+            <label class="test-type-option">
+              <input type="radio" name="testType" value="ambiguous" />
+              <span>
+                <strong>Ambiguous Letters</strong>
+                <small>Sharpen tricky-character accuracy</small>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Field selection — only relevant for the Custom Plate Test -->
+        <div class="form-group" id="fieldSelectGroup">
+          <label>Fields to Include</label>
+          <div class="field-checkbox-grid">
+            <label class="field-checkbox">
+              <input type="checkbox" name="field" value="state" />
+              <span>State</span>
+            </label>
+            <label class="field-checkbox">
+              <input type="checkbox" name="field" value="prefix" />
+              <span>Prefix</span>
+            </label>
+            <label class="field-checkbox is-locked">
+              <input type="checkbox" name="field" value="number" checked disabled />
+              <span>Number</span>
+            </label>
+            <label class="field-checkbox">
+              <input type="checkbox" name="field" value="suffix" />
+              <span>Suffix</span>
+            </label>
+          </div>
+          <p class="field-hint">Number is always included. Add State, Prefix and/or Suffix in any combination.</p>
+        </div>
+
+        <div class="form-group">
           <label for="candidateName">Full Name</label>
           <input
             type="text" id="candidateName" name="name"
@@ -54,14 +98,25 @@
           />
         </div>
 
-        <div class="instructions-box">
-          <h3>How the test works</h3>
+        <div class="instructions-box" id="instructionsCustom">
+          <h3>How the Custom Plate Test works</h3>
           <ul>
-            <li>You will be shown <strong>1,000 license plate codes</strong> one at a time</li>
-            <li>Type the exact code shown on the right side</li>
-            <li>Press <kbd>Enter ↵</kbd> to submit and move to the next plate</li>
+            <li>You will be shown <strong>1,000 license plates</strong> one at a time</li>
+            <li>Only the fields you checked above appear as inputs — type each one</li>
+            <li>Press <kbd>Tab ↹</kbd> to move between fields, <kbd>Enter ↵</kbd> to submit</li>
             <li>The test is timed — your speed &amp; accuracy are measured</li>
-            <li>Results are automatically sent after you finish</li>
+            <li>Results are sent to the "Custom Field Test" tab in the sheet</li>
+          </ul>
+        </div>
+
+        <div class="instructions-box" id="instructionsAmbiguous" style="display:none;">
+          <h3>How the Ambiguous Letters test works</h3>
+          <ul>
+            <li>You will be shown <strong>plate numbers only</strong> — no state, prefix or suffix</li>
+            <li>Every plate hides <strong>one visually tricky character</strong> (O/D, X/K, M/W, Y/V, etc.)</li>
+            <li>The plate is rendered squished &amp; slightly blurred — just like a rushed real-world glance</li>
+            <li>Look closely, type the exact code, then press <kbd>Enter ↵</kbd></li>
+            <li>Results are sent to the "Ambiguous Letters Test" tab in the sheet</li>
           </ul>
         </div>
 
@@ -80,12 +135,23 @@
   </div>
 
   <script>
+    // Toggle field-selection panel & instructions based on selected test type
+    document.querySelectorAll('input[name="testType"]').forEach(radio => {
+      radio.addEventListener('change', () => {
+        const isAmbiguous = document.querySelector('input[name="testType"]:checked').value === 'ambiguous';
+        document.getElementById('fieldSelectGroup').style.display   = isAmbiguous ? 'none' : 'block';
+        document.getElementById('instructionsCustom').style.display    = isAmbiguous ? 'none' : 'block';
+        document.getElementById('instructionsAmbiguous').style.display = isAmbiguous ? 'block' : 'none';
+      });
+    });
+
     document.getElementById('registerForm').addEventListener('submit', function (e) {
       e.preventDefault();
       const err = document.getElementById('formError');
-      const name  = document.getElementById('candidateName').value.trim();
-      const phone = document.getElementById('candidatePhone').value.trim();
-      const email = document.getElementById('candidateEmail').value.trim();
+      const name     = document.getElementById('candidateName').value.trim();
+      const phone    = document.getElementById('candidatePhone').value.trim();
+      const email    = document.getElementById('candidateEmail').value.trim();
+      const testType = document.querySelector('input[name="testType"]:checked').value;
 
       if (!name || !phone || !email) {
         err.textContent = 'Please fill in all fields before starting.';
@@ -99,8 +165,19 @@
         return;
       }
 
+      const candidate = { name, phone, email, testType };
+
+      if (testType === 'custom') {
+        candidate.fields = {
+          state:   document.querySelector('input[name="field"][value="state"]').checked,
+          prefix:  document.querySelector('input[name="field"][value="prefix"]').checked,
+          number:  true,
+          suffix:  document.querySelector('input[name="field"][value="suffix"]').checked,
+        };
+      }
+
       err.style.display = 'none';
-      sessionStorage.setItem('candidate', JSON.stringify({ name, phone, email }));
+      sessionStorage.setItem('candidate', JSON.stringify(candidate));
       window.location.href = 'test.html';
     });
   </script>
