@@ -1,14 +1,17 @@
 // ── PlateSpeed — Google Apps Script ──────────────────────────
 // Deploy as Web App: Execute as "Me", Access "Anyone"
 //
-// Routes results to two separate tabs in the active spreadsheet:
-//   • "Custom Field Test"     — for testType === "custom"
+// Routes results to three separate tabs in the active spreadsheet:
+//   • "Custom Field Test"      — for testType === "custom"
 //        (State/Prefix/Number/Suffix, any admin-chosen combination)
 //   • "Ambiguous Letters Test" — for testType === "ambiguous"
 //        (plate-number-only drill on confusable characters)
+//   • "Texas Vanity Test"      — for testType === "vanity"
+//        (letter O vs digit 0 judgment on Texas vanity plates)
 
 var CUSTOM_SHEET    = 'Custom Field Test';
 var AMBIGUOUS_SHEET = 'Ambiguous Letters Test';
+var VANITY_SHEET    = 'Texas Vanity Test';
 
 var CUSTOM_HEADERS = [
   'Timestamp', 'Name', 'Phone', 'Email', 'Fields Tested',
@@ -22,14 +25,23 @@ var AMBIGUOUS_HEADERS = [
   'Ambiguous Char Correct', 'Ambiguous Char Accuracy (%)'
 ];
 
+var VANITY_HEADERS = [
+  'Timestamp', 'Name', 'Phone', 'Email',
+  'Correct', 'Total Plates', 'Accuracy (%)', 'Time Taken (s)',
+  'O/0 Correct (plates)', 'O/0 Accuracy (%)',
+  'Letter O typed as 0', 'Digit 0 typed as O'
+];
+
 function doPost(e) {
   try {
     var data = JSON.parse(e.postData.contents);
-    var isAmbiguous = (data.testType === 'ambiguous');
+    var type = data.testType;
 
-    var ss   = SpreadsheetApp.getActiveSpreadsheet();
-    var name = isAmbiguous ? AMBIGUOUS_SHEET : CUSTOM_SHEET;
-    var headers = isAmbiguous ? AMBIGUOUS_HEADERS : CUSTOM_HEADERS;
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var name, headers;
+    if (type === 'ambiguous')   { name = AMBIGUOUS_SHEET; headers = AMBIGUOUS_HEADERS; }
+    else if (type === 'vanity') { name = VANITY_SHEET;    headers = VANITY_HEADERS; }
+    else                        { name = CUSTOM_SHEET;    headers = CUSTOM_HEADERS; }
 
     var sheet = ss.getSheetByName(name);
     if (!sheet) sheet = ss.insertSheet(name);
@@ -41,30 +53,38 @@ function doPost(e) {
       sheet.setFrozenRows(1);
     }
 
-    var row;
+    var row = [
+      data.timestamp,
+      data.name,
+      data.phone,
+      data.email
+    ];
 
-    if (isAmbiguous) {
-      row = [
-        data.timestamp,
-        data.name,
-        data.phone,
-        data.email,
+    if (type === 'ambiguous') {
+      row.push(
         data.correct,
         data.total,
         data.accuracy,
         data.timeTaken,
         data.ambiguousCorrect,
         data.ambiguousAccuracy
-      ];
+      );
+    } else if (type === 'vanity') {
+      row.push(
+        data.correct,
+        data.total,
+        data.accuracy,
+        data.timeTaken,
+        data.roundCorrect,
+        data.roundAccuracy,
+        data.letterAsDigit,
+        data.digitAsLetter
+      );
     } else {
       var fieldsTested = data.fieldsTested || ['number'];
       var tested = function (key) { return fieldsTested.indexOf(key) > -1; };
 
-      row = [
-        data.timestamp,
-        data.name,
-        data.phone,
-        data.email,
+      row.push(
         fieldsTested.join(', '),
         data.correct,
         data.total,
@@ -74,7 +94,7 @@ function doPost(e) {
         tested('prefix') ? data.prefixCorrect : 'N/A',
         data.numberCorrect,   // number is always part of a custom test
         tested('suffix') ? data.suffixCorrect : 'N/A'
-      ];
+      );
     }
 
     sheet.appendRow(row);

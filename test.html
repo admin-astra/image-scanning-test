@@ -92,6 +92,21 @@
           />
         </div>
 
+        <!-- Texas Vanity Plates — single registration input -->
+        <div class="type-input-wrap" id="vanityInputWrap" style="display:none;">
+          <input
+            type="text"
+            id="vanityInput"
+            maxlength="9"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="characters"
+            spellcheck="false"
+            placeholder="_ _ _ _ _ _ _"
+            aria-label="Type the Texas registration shown on the right"
+          />
+        </div>
+
         <div class="enter-hint" id="enterHint">
           Press <kbd>Enter ↵</kbd> to submit &amp; advance
         </div>
@@ -130,6 +145,19 @@
           </div>
         </div>
 
+        <!-- Texas Vanity plate — letter O and digit 0 share one glyph -->
+        <div class="plate-frame" id="vanityPlateFrame" style="display:none;" aria-hidden="true">
+          <div class="plate-display-inner vanity-plate-inner" id="vanityPlateInner">
+            <div class="plate-bolts">
+              <div class="bolt"></div>
+              <div class="bolt"></div>
+            </div>
+            <div class="vanity-plate-header"><span>★</span>TEXAS<span>★</span></div>
+            <div class="vanity-plate-text" id="vanityPlateText">Loading…</div>
+            <div class="vanity-plate-tagline">The Lone Star State</div>
+          </div>
+        </div>
+
         <div class="plate-count-badge" id="plateBadge">1 / 1000</div>
       </div>
 
@@ -158,6 +186,8 @@
         </div>
       </div>
 
+      <div class="results-review" id="resultsReview" style="display:none;"></div>
+
       <p class="results-note" id="submitStatus">Submitting results…</p>
 
       <button class="btn-primary" onclick="window.location.href='index.html'" style="max-width:260px;margin:0 auto;">
@@ -169,6 +199,7 @@
   <!-- ── Scripts ───────────────────────────────────────────── -->
   <script src="config.js"></script>
   <script src="plates.js"></script>
+  <script src="vanity-plates.js"></script>
   <script src="test.js"></script>
 </body>
 </html>

@@ -44,6 +44,13 @@
                 <small>Sharpen tricky-character accuracy</small>
               </span>
             </label>
+            <label class="test-type-option">
+              <input type="radio" name="testType" value="vanity" />
+              <span>
+                <strong>Texas Vanity Plates</strong>
+                <small>Letter O or digit 0?</small>
+              </span>
+            </label>
           </div>
         </div>
 
@@ -120,6 +127,17 @@
           </ul>
         </div>
 
+        <div class="instructions-box" id="instructionsVanity" style="display:none;">
+          <h3>How the Texas Vanity test works</h3>
+          <ul>
+            <li>You will be shown <strong>100 Texas plates</strong>; Texas prints the <strong>letter O and digit 0 identically</strong></li>
+            <li>Beside another number → <strong>digit 0</strong> (JACK01, DDS01)</li>
+            <li>Standard layout ABC-1234 / AB1-C234 → <strong>digit 0</strong> (Texas never issues the letter O)</li>
+            <li>Reads as a word, or no numbers beside it → <strong>letter O</strong> (ROVEHER, G4RMO)</li>
+            <li>Skip separators (★ ♥ • -), type the registration, press <kbd>Enter ↵</kbd>. Missed plates are explained at the end</li>
+          </ul>
+        </div>
+
         <!-- Error message -->
         <p id="formError" style="color:#ff6b6b;font-size:0.82rem;margin-bottom:12px;display:none;"></p>
 
@@ -138,10 +156,11 @@
     // Toggle field-selection panel & instructions based on selected test type
     document.querySelectorAll('input[name="testType"]').forEach(radio => {
       radio.addEventListener('change', () => {
-        const isAmbiguous = document.querySelector('input[name="testType"]:checked').value === 'ambiguous';
-        document.getElementById('fieldSelectGroup').style.display   = isAmbiguous ? 'none' : 'block';
-        document.getElementById('instructionsCustom').style.display    = isAmbiguous ? 'none' : 'block';
-        document.getElementById('instructionsAmbiguous').style.display = isAmbiguous ? 'block' : 'none';
+        const type = document.querySelector('input[name="testType"]:checked').value;
+        document.getElementById('fieldSelectGroup').style.display      = type === 'custom'    ? 'block' : 'none';
+        document.getElementById('instructionsCustom').style.display    = type === 'custom'    ? 'block' : 'none';
+        document.getElementById('instructionsAmbiguous').style.display = type === 'ambiguous' ? 'block' : 'none';
+        document.getElementById('instructionsVanity').style.display    = type === 'vanity'    ? 'block' : 'none';
       });
     });
 

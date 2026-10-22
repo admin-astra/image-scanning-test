@@ -45,6 +45,7 @@ const CONFIG = {
   APPS_SCRIPT_URL: 'PASTE_YOUR_WEB_APP_URL_HERE',   // ← paste here
   TOTAL_PLATES: 1000,            // plates in the Custom Field Test
   AMBIGUOUS_TOTAL_PLATES: 300,   // plates in the Ambiguous Letters drill
+  VANITY_TOTAL_PLATES: 100,      // plates in the Texas Vanity test (max 100)
 };
 ```
 
@@ -58,15 +59,16 @@ Save the file. **That's it — you're done!**
 2. Choose a test type at the top:
    - **Custom Plate Test** — check any combination of State / Prefix / Number / Suffix (Number is always on), then fill in name/phone/email.
    - **Ambiguous Letters** — no field selection needed; just fill in name/phone/email.
-3. Complete a few plates, then check your Google Sheet — a new row appears in either the `Custom Field Test` or `Ambiguous Letters Test` tab depending on which test you ran.
+   - **Texas Vanity Plates** — no field selection needed; just fill in name/phone/email.
+3. Complete a few plates, then check your Google Sheet — a new row appears in the `Custom Field Test`, `Ambiguous Letters Test` or `Texas Vanity Test` tab depending on which test you ran.
 
 > **Tip:** You can verify the Apps Script is running by opening the Web App URL in your browser — it should return `{"status":"PlateSpeed Apps Script is running."}`.
 
 ---
 
-## Two Tabs are Auto-Created
+## Three Tabs are Auto-Created
 
-The Apps Script writes to **two separate tabs** in the spreadsheet, depending on which test was taken. Each tab is created automatically on the first submission of its type.
+The Apps Script writes to **three separate tabs** in the spreadsheet, depending on which test was taken. Each tab is created automatically on the first submission of its type.
 
 ### Tab 1 — `Custom Field Test`
 
@@ -81,6 +83,15 @@ Records results from the confusable-character drill. Alongside overall accuracy,
 
 | A | B | C | D | E (Correct) | F | G | H | I (Ambiguous Char Correct) | J (Ambiguous Char Accuracy %) |
 | - | - | - | - | ----------- | - | - | - | -------------------------- | ------------------------------ |
+
+### Tab 3 — `Texas Vanity Test`
+
+Records results from the Texas vanity drill, built from the *Vanity Plates Training* deck. Texas prints the letter O and the digit 0 with the same round glyph, so each plate tests the reviewer's judgment: beside a number or in a standard-issue layout (ABC-1234 / AB1-C234) it is the digit 0; a word, or no numbers beside it, means the letter O. `O/0 Correct` counts plates where every round character was called right, and the last two columns count each swap direction (the swaps that cause wrong-person billing).
+
+| A | B | C | D | E (Correct) | F | G | H | I (O/0 Correct) | J (O/0 Accuracy %) | K (Letter O typed as 0) | L (Digit 0 typed as O) |
+| - | - | - | - | ----------- | - | - | - | --------------- | ------------------ | ----------------------- | ---------------------- |
+
+The 100 plates live in `vanity-plates.js`. Each is stored with its true answer (`O` = letter, `0` = digit), and missed plates are listed with the deck's reasoning at the end of the test.
 
 ---
 

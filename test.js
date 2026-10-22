@@ -18,11 +18,16 @@ let fieldStats = { state: 0, prefix: 0, number: 0, suffix: 0 };
 // Ambiguous mode: how many times the one "trap" character was typed correctly
 let ambiguousCorrectCount = 0;
 
+// Texas Vanity mode: plates whose every O/0 was called right, the two swap
+// directions the training deck warns about, and missed plates for review
+let vanityStats = { roundCorrect: 0, letterAsDigit: 0, digitAsLetter: 0 };
+let vanityMisses = [];
+
 document.addEventListener('DOMContentLoaded', () => {
   const stored = sessionStorage.getItem('candidate');
   if (!stored) { window.location.href = 'index.html'; return; }
   candidate = JSON.parse(stored);
-  testType = candidate.testType === 'ambiguous' ? 'ambiguous' : 'custom';
+  testType = ['ambiguous', 'vanity'].includes(candidate.testType) ? candidate.testType : 'custom';
 
   // Common UI refs
   const progFill = document.getElementById('progressFill');
@@ -33,6 +38,9 @@ document.addEventListener('DOMContentLoaded', () => {
   if (testType === 'ambiguous') {
     totalPlates = CONFIG.AMBIGUOUS_TOTAL_PLATES || 100;
     setupAmbiguousMode();
+  } else if (testType === 'vanity') {
+    totalPlates = Math.min(CONFIG.VANITY_TOTAL_PLATES || 100, TEXAS_VANITY_PLATES.length);
+    setupVanityMode();
   } else {
     enabledFields = candidate.fields || { number: true };
     totalPlates = CONFIG.TOTAL_PLATES;
@@ -282,6 +290,101 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // ── Texas Vanity Plates ─────────────────────────────────────
+  function setupVanityMode() {
+    plates = generateVanityPlates(totalPlates);
+
+    document.getElementById('headerMode').textContent = 'Texas Vanity';
+    document.getElementById('inputPanelLabel').textContent = 'Letter O or digit 0? Type the registration';
+    document.getElementById('vanityInputWrap').style.display  = 'block';
+    document.getElementById('vanityPlateFrame').style.display = 'block';
+    document.getElementById('enterHint').innerHTML =
+      'Skip separators · <kbd>Enter ↵</kbd> to submit';
+
+    const input   = document.getElementById('vanityInput');
+    const inner   = document.getElementById('vanityPlateInner');
+    const plateEl = document.getElementById('vanityPlateText');
+
+    renderVanityPlate(0);
+    input.focus();
+    document.body.addEventListener('click', () => input.focus());
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      if (submitted) return;
+
+      const expected = plates[currentIndex];
+      const typed = input.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+
+      let roundOk = true;
+      [...expected.plate].forEach((ch, i) => {
+        if (ch !== 'O' && ch !== '0') return;
+        if (typed[i] === ch) return;
+        roundOk = false;
+        if (ch === 'O' && typed[i] === '0') vanityStats.letterAsDigit++;
+        if (ch === '0' && typed[i] === 'O') vanityStats.digitAsLetter++;
+      });
+      if (roundOk) vanityStats.roundCorrect++;
+
+      if (typed === expected.plate) correctCount++;
+      else vanityMisses.push({ plate: expected.plate, typed, reason: expected.reason });
+
+      currentIndex++;
+      input.value = '';
+
+      if (currentIndex >= totalPlates) {
+        finishTest();
+      } else {
+        renderVanityPlate(currentIndex);
+        updateProgress();
+      }
+    });
+
+    input.addEventListener('input', () => {
+      const pos = input.selectionStart;
+      input.value = input.value.toUpperCase();
+      input.setSelectionRange(pos, pos);
+    });
+
+    function renderVanityPlate(index) {
+      const plate = plates[index];
+      inner.style.opacity = '0';
+      setTimeout(() => {
+        plateEl.innerHTML = '';
+        const sep = plate.standard ? '★' : ['♥', '★', '•', ' '][Math.floor(Math.random() * 4)];
+        [...plate.display].forEach(ch => {
+          if (ch === '|') {
+            plateEl.appendChild(makeSpan('sep', sep));
+          } else if (ch === 'O' || ch === '0') {
+            // Same glyph either way — exactly the ambiguity on real Texas plates
+            plateEl.appendChild(makeSpan('round', 'O'));
+          } else {
+            plateEl.appendChild(document.createTextNode(ch));
+          }
+        });
+
+        // Black specialty plates and mild camera wear, like the deck's captures
+        inner.classList.toggle('is-dark', Math.random() < 0.35);
+        const skew   = (Math.random() * 6 - 3).toFixed(1);
+        const rotate = (Math.random() * 4 - 2).toFixed(1);
+        const blur   = (0.3 + Math.random() * 0.6).toFixed(2);
+        plateEl.style.transform = `skewX(${skew}deg) rotate(${rotate}deg)`;
+        plateEl.style.filter = `blur(${blur}px)`;
+
+        inner.style.transition = 'opacity 0.18s ease';
+        inner.style.opacity = '1';
+      }, 90);
+    }
+
+    function makeSpan(cls, text) {
+      const el = document.createElement('span');
+      el.className = cls;
+      el.textContent = text;
+      return el;
+    }
+  }
+
   // ── Shared helpers ──────────────────────────────────────────
   function updateProgress() {
     const pct = (currentIndex / totalPlates) * 100;
@@ -303,6 +406,7 @@ document.addEventListener('DOMContentLoaded', () => {
     timerEl.textContent   = formatTime(totalTime);
 
     showResults(correctCount, accuracy, totalTime);
+    if (testType === 'vanity') showVanityReview();
     submitToSheet(accuracy, totalTime);
   }
 });
@@ -320,6 +424,58 @@ function showResults(correct, accuracy, timeTaken) {
   document.getElementById('resTime').textContent     = formatTime(timeTaken);
   document.getElementById('resName').textContent     = candidate.name;
   document.getElementById('resultsOverlay').classList.add('active');
+}
+
+// Lists every missed vanity plate with the deck's reasoning, so the test
+// doubles as training. Round characters are colour-coded letter vs digit.
+function showVanityReview() {
+  const box = document.getElementById('resultsReview');
+  const head = document.createElement('h4');
+  head.innerHTML = `<span>Plates to review (${vanityMisses.length})</span>` +
+    `<small>O/0 called right on ${vanityStats.roundCorrect} of ${totalPlates} plates</small>`;
+  box.appendChild(head);
+
+  if (!vanityMisses.length) {
+    const ok = document.createElement('div');
+    ok.className = 'review-item review-reason';
+    ok.textContent = 'Every plate correct. Nice work.';
+    box.appendChild(ok);
+  }
+
+  vanityMisses.forEach(miss => {
+    const item = document.createElement('div');
+    item.className = 'review-item';
+
+    const line = document.createElement('div');
+    line.className = 'review-plates';
+    line.append('Correct ', codeEl(miss.plate, true), ' You typed ', codeEl(miss.typed || '(blank)', false));
+
+    const why = document.createElement('div');
+    why.className = 'review-reason';
+    why.textContent = TEXAS_ROUND_REASONS[miss.reason];
+
+    item.append(line, why);
+    box.appendChild(item);
+  });
+
+  box.style.display = 'block';
+
+  function codeEl(text, isAnswer) {
+    const el = document.createElement('span');
+    el.className = 'review-code' + (isAnswer ? '' : ' is-wrong');
+    [...text].forEach(ch => {
+      if (isAnswer && (ch === 'O' || ch === '0')) {
+        const mark = document.createElement('span');
+        mark.className = ch === 'O' ? 'is-letter' : 'is-digit';
+        mark.title = ch === 'O' ? 'letter O' : 'digit 0';
+        mark.textContent = ch;
+        el.appendChild(mark);
+      } else {
+        el.append(ch);
+      }
+    });
+    return el;
+  }
 }
 
 // Decorative tagline shown under the registration. Purely visual — not tested.
@@ -360,6 +516,11 @@ async function submitToSheet(accuracy, timeTaken) {
     payload.prefixCorrect = enabledFields.prefix ? fieldStats.prefix : null;
     payload.numberCorrect = fieldStats.number; // always tested
     payload.suffixCorrect = enabledFields.suffix ? fieldStats.suffix : null;
+  } else if (testType === 'vanity') {
+    payload.roundCorrect  = vanityStats.roundCorrect;
+    payload.roundAccuracy = ((vanityStats.roundCorrect / totalPlates) * 100).toFixed(1);
+    payload.letterAsDigit = vanityStats.letterAsDigit;
+    payload.digitAsLetter = vanityStats.digitAsLetter;
   } else {
     payload.ambiguousCorrect  = ambiguousCorrectCount;
     payload.ambiguousAccuracy = ((ambiguousCorrectCount / totalPlates) * 100).toFixed(1);
