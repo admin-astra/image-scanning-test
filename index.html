@@ -79,6 +79,11 @@
         </div>
 
         <div class="form-group">
+          <label for="plateCount">Number of Plates</label>
+          <select id="plateCount"></select>
+        </div>
+
+        <div class="form-group">
           <label for="candidateName">Full Name</label>
           <input
             type="text" id="candidateName" name="name"
@@ -108,7 +113,7 @@
         <div class="instructions-box" id="instructionsCustom">
           <h3>How the Custom Plate Test works</h3>
           <ul>
-            <li>You will be shown <strong>1,000 license plates</strong> one at a time</li>
+            <li>You will be shown <strong><span class="plate-count-text"></span> license plates</strong> one at a time</li>
             <li>Only the fields you checked above appear as inputs — type each one</li>
             <li>Press <kbd>Tab ↹</kbd> to move between fields, <kbd>Enter ↵</kbd> to submit</li>
             <li>The test is timed — your speed &amp; accuracy are measured</li>
@@ -119,7 +124,7 @@
         <div class="instructions-box" id="instructionsAmbiguous" style="display:none;">
           <h3>How the Ambiguous Letters test works</h3>
           <ul>
-            <li>You will be shown <strong>plate numbers only</strong> — no state, prefix or suffix</li>
+            <li>You will be shown <strong><span class="plate-count-text"></span> plates, numbers only</strong> — no state, prefix or suffix</li>
             <li>Every plate hides <strong>one visually tricky character</strong> (O/D, X/K, M/W, Y/V, etc.)</li>
             <li>The plate is rendered squished, blurred &amp; glared — just like a rushed real-world glance</li>
             <li>Look closely, type the exact code, then press <kbd>Enter ↵</kbd></li>
@@ -130,7 +135,7 @@
         <div class="instructions-box" id="instructionsVanity" style="display:none;">
           <h3>How the Texas Vanity test works</h3>
           <ul>
-            <li>You will be shown <strong>100 Texas plates</strong>; Texas prints the <strong>letter O and digit 0 identically</strong></li>
+            <li>You will be shown <strong><span class="plate-count-text"></span> Texas plates</strong>; Texas prints the <strong>letter O and digit 0 identically</strong></li>
             <li>Beside another number → <strong>digit 0</strong> (JACK01, DDS01)</li>
             <li>Standard layout ABC-1234 / AB1-C234 → <strong>digit 0</strong> (Texas never issues the letter O)</li>
             <li>Reads as a word, or no numbers beside it → <strong>letter O</strong> (ROVEHER, G4RMO)</li>
@@ -152,7 +157,37 @@
     </div>
   </div>
 
+  <script src="config.js"></script>
   <script>
+    const plateCountSel = document.getElementById('plateCount');
+
+    CONFIG.PLATE_COUNT_OPTIONS.forEach(n => {
+      const opt = document.createElement('option');
+      opt.value = n;
+      opt.textContent = n.toLocaleString('en-US');
+      plateCountSel.appendChild(opt);
+    });
+
+    // Each test starts on its default count from config.js
+    function selectDefaultPlateCount(type) {
+      const defaults = {
+        custom:    CONFIG.TOTAL_PLATES,
+        ambiguous: CONFIG.AMBIGUOUS_TOTAL_PLATES,
+        vanity:    CONFIG.VANITY_TOTAL_PLATES,
+      };
+      plateCountSel.value = defaults[type];
+      showPlateCount();
+    }
+
+    // Keep the "You will be shown N plates" line in the instructions in sync
+    function showPlateCount() {
+      const text = Number(plateCountSel.value).toLocaleString('en-US');
+      document.querySelectorAll('.plate-count-text').forEach(el => { el.textContent = text; });
+    }
+
+    plateCountSel.addEventListener('change', showPlateCount);
+    selectDefaultPlateCount(document.querySelector('input[name="testType"]:checked').value);
+
     // Toggle field-selection panel & instructions based on selected test type
     document.querySelectorAll('input[name="testType"]').forEach(radio => {
       radio.addEventListener('change', () => {
@@ -161,6 +196,7 @@
         document.getElementById('instructionsCustom').style.display    = type === 'custom'    ? 'block' : 'none';
         document.getElementById('instructionsAmbiguous').style.display = type === 'ambiguous' ? 'block' : 'none';
         document.getElementById('instructionsVanity').style.display    = type === 'vanity'    ? 'block' : 'none';
+        selectDefaultPlateCount(type);
       });
     });
 
@@ -184,7 +220,7 @@
         return;
       }
 
-      const candidate = { name, phone, email, testType };
+      const candidate = { name, phone, email, testType, plateCount: Number(plateCountSel.value) };
 
       if (testType === 'custom') {
         candidate.fields = {

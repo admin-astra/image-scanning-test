@@ -82,8 +82,17 @@ function shuffle(list) {
   return out;
 }
 
+// The list holds 100 plates, so longer tests go through it again in a fresh
+// order each pass, never showing the same plate twice in a row.
 function generateVanityPlates(count) {
-  return shuffle(TEXAS_VANITY_PLATES).slice(0, count).map(display => {
+  const order = [];
+  while (order.length < count) {
+    const pass = shuffle(TEXAS_VANITY_PLATES);
+    if (pass[0] === order[order.length - 1]) pass.push(pass.shift());
+    order.push(...pass);
+  }
+
+  return order.slice(0, count).map(display => {
     const plate = display.replace(/\|/g, '');
     const reason = texasRoundReason(plate);
     return { display, plate, reason, standard: reason === 'standard' };

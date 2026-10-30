@@ -35,15 +35,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const timerEl  = document.getElementById('timerDisplay');
   const badge    = document.getElementById('plateBadge');
 
+  // Count picked on the first page; config.js defaults if it's missing
+  const chosenCount = candidate.plateCount > 0 ? candidate.plateCount : null;
+
   if (testType === 'ambiguous') {
-    totalPlates = CONFIG.AMBIGUOUS_TOTAL_PLATES || 100;
+    totalPlates = chosenCount || CONFIG.AMBIGUOUS_TOTAL_PLATES || 100;
     setupAmbiguousMode();
   } else if (testType === 'vanity') {
-    totalPlates = Math.min(CONFIG.VANITY_TOTAL_PLATES || 100, TEXAS_VANITY_PLATES.length);
+    totalPlates = chosenCount || CONFIG.VANITY_TOTAL_PLATES || 100;
     setupVanityMode();
   } else {
     enabledFields = candidate.fields || { number: true };
-    totalPlates = CONFIG.TOTAL_PLATES;
+    totalPlates = chosenCount || CONFIG.TOTAL_PLATES;
     setupCustomMode(enabledFields);
   }
 

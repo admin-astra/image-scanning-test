@@ -43,9 +43,10 @@ Open `config.js` in the project folder and replace the placeholder:
 ```js
 const CONFIG = {
   APPS_SCRIPT_URL: 'PASTE_YOUR_WEB_APP_URL_HERE',   // ← paste here
-  TOTAL_PLATES: 1000,            // plates in the Custom Field Test
-  AMBIGUOUS_TOTAL_PLATES: 300,   // plates in the Ambiguous Letters drill
-  VANITY_TOTAL_PLATES: 100,      // plates in the Texas Vanity test (max 100)
+  TOTAL_PLATES: 1000,            // default plates, Custom Field Test
+  AMBIGUOUS_TOTAL_PLATES: 300,   // default plates, Ambiguous Letters drill
+  VANITY_TOTAL_PLATES: 100,      // default plates, Texas Vanity test
+  PLATE_COUNT_OPTIONS: [100, 200, 300, 400, 500, 700, 800, 1000],   // dropdown choices, for every test
 };
 ```
 
@@ -60,6 +61,8 @@ Save the file. **That's it — you're done!**
    - **Custom Plate Test** — check any combination of State / Prefix / Number / Suffix (Number is always on), then fill in name/phone/email.
    - **Ambiguous Letters** — no field selection needed; just fill in name/phone/email.
    - **Texas Vanity Plates** — no field selection needed; just fill in name/phone/email.
+
+   Then choose **Number of Plates** from the dropdown. It starts on that test's default from `config.js`. The count used is recorded in the `Total Plates` column.
 3. Complete a few plates, then check your Google Sheet — a new row appears in the `Custom Field Test`, `Ambiguous Letters Test` or `Texas Vanity Test` tab depending on which test you ran.
 
 > **Tip:** You can verify the Apps Script is running by opening the Web App URL in your browser — it should return `{"status":"PlateSpeed Apps Script is running."}`.
@@ -91,7 +94,7 @@ Records results from the Texas vanity drill, built from the *Vanity Plates Train
 | A | B | C | D | E (Correct) | F | G | H | I (O/0 Correct) | J (O/0 Accuracy %) | K (Letter O typed as 0) | L (Digit 0 typed as O) |
 | - | - | - | - | ----------- | - | - | - | --------------- | ------------------ | ----------------------- | ---------------------- |
 
-The 100 plates live in `vanity-plates.js`. Each is stored with its true answer (`O` = letter, `0` = digit), and missed plates are listed with the deck's reasoning at the end of the test.
+The 100 plates live in `vanity-plates.js`. Each is stored with its true answer (`O` = letter, `0` = digit), and missed plates are listed with the deck's reasoning at the end of the test. Tests longer than 100 plates repeat the list in a fresh order.
 
 ---
 
